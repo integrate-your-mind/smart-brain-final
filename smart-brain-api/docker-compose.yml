@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+
+  # Backend API
+  smart-brain-api:
+    container_name: backend
+    image: node:12.13.1
+    build: ./
+    command: npm start
+    working_dir: /usr/src/smart-brain-api
+    environment: 
+      POSTGRES_URI: postgres://Zeus:docker@postgres/smart-brain-docker
+      REDIS_URI: redis://redis:6379
+    links:
+      - postgres
+      - redis
+    ports: 
+      - "3000:3000"
+    volumes:
+      - ./:/usr/src/smart-brain-api
+
+  # Postgres
+  postgres: 
+    environment:  
+      POSTGRES_USER: Zeus
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: smart-brain-docker
+      POSTGRES_HOST: postgres
+    build: ./postgres
+    ports:
+      - "5432:5432"
+
+  # Redis
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
