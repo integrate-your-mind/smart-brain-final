@@ -39,7 +39,7 @@ class Register extends React.Component {
       .then(res => res.json())
       .then(data => {
         debugger;
-        if (data.id) {
+        if (data !== "unable to register") {
           fetch("http://localhost:3000/signin", {
             method: "post",
             headers: { "Content-Type": "application/json" },
