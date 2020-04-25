@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react";
 import {
   Dropdown,
   DropdownToggle,
   DropdownMenu,
   DropdownItem
-} from 'reactstrap';
+} from "reactstrap";
 
-import './ProfileIcon.css';
+import "./ProfileIcon.css";
 
 class ProfileIcon extends React.Component {
   constructor(props) {
@@ -22,6 +22,17 @@ class ProfileIcon extends React.Component {
     this.setState(prevState => ({
       dropdownOpen: !prevState.dropdownOpen
     }));
+  }
+
+  handleSignOut() {
+    const token = window.sessionStorage.getItem("token");
+    fetch("http://localhost:3000/signout", {
+      method: "post",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({
+        token: token
+      })
+    });
   }
 
   render() {
@@ -42,14 +53,19 @@ class ProfileIcon extends React.Component {
           <DropdownMenu
             className="b--transparent shadow-5 dropdown-menu-right"
             style={{
-              marginTop: '20px',
-              backgroundColor: 'rgba(255,255,255,0.5)'
+              marginTop: "20px",
+              backgroundColor: "rgba(255,255,255,0.5)"
             }}
           >
             <DropdownItem onClick={this.props.toggleModal}>
               View Profile
             </DropdownItem>
-            <DropdownItem onClick={() => this.props.onRouteChange('signout')}>
+            <DropdownItem
+              onClick={() => {
+                this.handleSignOut();
+                this.props.onRouteChange("signout");
+              }}
+            >
               Sign out
             </DropdownItem>
           </DropdownMenu>

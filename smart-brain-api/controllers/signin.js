@@ -4,11 +4,12 @@ const redis = require("redis");
 //Instantiating the redis client
 const redisClient = redis.createClient(process.env.REDIS_URI);
 
-const handleSignin = (db, bcrypt, req, res) => {
+const handleSignin = async (db, bcrypt, req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return Promise.reject("Incorrect form submission");
   }
+
   return db
     .select("email", "hash")
     .from("login")
@@ -31,11 +32,21 @@ const handleSignin = (db, bcrypt, req, res) => {
 
 const getAuthTokenId = (req, res) => {
   const { authorization } = req.headers;
-  return redisClient.get(authorization, (error, reply) => {
-    if (error || !reply) {
-      return response.status(400).json("Unauthorized");
+  //Insert logic to prevent expired tokens here
+  const result = redisClient.lrange("blacklist", 0, -1, function(err, reply) {
+    if (reply.indexOf(authorization) > -1) {
+      return res.status(400).json({
+        status: 400,
+        error: "Invalid Token"
+      });
+    } else {
+      return redisClient.get(authorization, (error, reply) => {
+        if (error || !reply) {
+          return response.status(400).json("Unauthorized");
+        }
+        return res.json({ id: reply });
+      });
     }
-    return res.json({ id: reply });
   });
 };
 
@@ -61,11 +72,11 @@ const createSessions = user => {
 
 const signinAuthentication = (db, bcrypt) => (req, res) => {
   const { authorization } = req.headers;
-  //If the token exists use that, if not handle a regular sign-in
+
   return authorization
     ? getAuthTokenId(req, res)
     : handleSignin(db, bcrypt, req, res)
-        .then(data => {
+        .then(async data => {
           return data.id && data.email
             ? createSessions(data)
             : Promise.reject(data);

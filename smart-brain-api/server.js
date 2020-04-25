@@ -5,6 +5,7 @@ const cors = require("cors");
 const knex = require("knex");
 const morgan = require("morgan");
 
+const signout = require("./controllers/signout");
 const register = require("./controllers/register");
 const signin = require("./controllers/signin");
 const profile = require("./controllers/profile");
@@ -24,6 +25,9 @@ app.use(morgan("combined"));
 
 app.get("/", (req, res) => {
   res.send(db.users);
+});
+app.post("/signout", auth.requireAuth, (req, res) => {
+  signout.handleSignOut(req, res);
 });
 app.post("/signin", signin.signinAuthentication(db, bcrypt));
 app.post("/register", (req, res) => {
